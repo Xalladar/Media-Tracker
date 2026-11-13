@@ -12425,7 +12425,14 @@ service cloud.firestore {
         await signInWithPopup(auth, googleProvider);
       } catch (err) {
         console.warn('Google sign-in notice:', err);
-        showToastNotification(err && err.code === 'auth/popup-closed-by-user' ? 'Google sign-in popup closed' : 'Google sign-in failed — check Firebase Console Authorized Domains');
+        const code = (err && err.code) ? err.code : 'unknown-error';
+        const msgMap = {
+          'auth/popup-closed-by-user': 'Google sign-in popup was closed.',
+          'auth/popup-blocked': 'Browser blocked the sign-in popup. Allow popups for this site and try again.',
+          'auth/operation-not-allowed': 'Google Sign-In is not enabled in Firebase Console > Authentication > Sign-in method.',
+          'auth/unauthorized-domain': `Domain "${window.location.hostname || window.location.origin}" is not authorized in Firebase Console.`
+        };
+        showToastNotification(msgMap[code] || `Google sign-in failed (${code}): ${err && err.message ? err.message : ""}`);
       }
     }
 
