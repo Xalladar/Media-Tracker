@@ -420,12 +420,12 @@
         </p>
       </div>
 
-      <div id="auth-gate-loading" class="hidden py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
+      <div id="auth-gate-loading" class="py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
         <i class="fa-solid fa-spinner animate-spin text-cinema-accent"></i>
         <span>Checking your session...</span>
       </div>
 
-      <div id="auth-gate-actions" class="space-y-3">
+      <div id="auth-gate-actions" class="hidden space-y-3">
         <button type="button" onclick="handleGoogleAuthButtonClick()" class="w-full py-3.5 px-5 rounded-xl bg-cinema-accent hover:bg-cinema-accentHover text-white font-extrabold text-sm shadow-lg shadow-red-600/25 flex items-center justify-center gap-2.5 transition">
           <i class="fa-brands fa-google text-base"></i>
           <span>Sign in with Google</span>
@@ -456,13 +456,10 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 pr-28">
+      <div class="flex items-center gap-2">
         <button type="button" onclick="closeAdminProfileHub()" class="px-3.5 py-1.5 rounded-xl bg-cinema-800 hover:bg-cinema-700 border border-cinema-600 text-slate-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition">
           <i class="fa-solid fa-arrow-left"></i>
           <span>Return to App</span>
-        </button>
-        <button type="button" onclick="handleAdminButtonClick()" id="hub-admin-btn" class="hidden">
-          <span id="hub-admin-btn-label">Admin Mode</span>
         </button>
       </div>
     </div>
@@ -536,7 +533,7 @@
       </nav>
 
       <!-- Active Profile & Settings Toolbar (Google Sign-In + Personal Account Settings) -->
-      <div class="flex items-center gap-1.5 flex-shrink-0 pr-24 sm:pr-28">
+      <div class="flex items-center gap-1.5 flex-shrink-0">
 
         <button id="header-profile-btn" type="button" onclick="handleHeaderProfileButtonClick()" class="px-2.5 py-1.5 rounded-xl bg-cinema-900 hover:bg-cinema-800 border border-cinema-700 text-xs font-semibold flex items-center gap-1.5 transition flex-shrink-0 whitespace-nowrap" title="Your Synced Profile &amp; Account Settings">
           <div id="header-profile-avatar" class="w-6 h-6 rounded-lg bg-cinema-accent flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
@@ -566,7 +563,7 @@
     </div>
   </header>
 
-  <!-- Fixed Top-Right Viewport Admin Button (Only visible when signed in with ADMIN_EMAIL) -->
+
 
   <!-- Fixed Bottom-Right Viewport Cloud Sync & API Health Checker -->
   <div id="fixed-bottom-right-controls" style="position: fixed; bottom: 16px; right: 16px; z-index: 1000;" class="hidden flex items-center gap-2 bg-cinema-950/90 backdrop-blur-md p-1.5 rounded-2xl border border-cinema-700 shadow-2xl">
@@ -1443,15 +1440,46 @@
           <div id="settings-custom-lists-order-list" class="space-y-1.5 pt-1"></div>
         </div>
 
-        <!-- Custom Profile Selector Order (Hidden unless in Admin Mode) -->
-        <div id="settings-profile-order-wrapper" class="hidden bg-cinema-950 p-3 rounded-xl border border-amber-500/40 space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="text-cinema-gold font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-user-shield"></i> Admin: Reorganize Profiles (Drag &amp; Drop)
-            </label>
-            <span class="text-[10px] text-slate-400">Drag directly into slot</span>
+        <!-- Admin Controls (Automatically synced when signed in with Admin Google Account) -->
+        <div id="settings-profile-order-wrapper" class="hidden bg-cinema-950 p-3.5 rounded-xl border border-amber-500/40 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cinema-800 pb-2.5">
+            <div>
+              <div class="text-cinema-gold font-extrabold flex items-center gap-1.5 text-xs">
+                <i class="fa-solid fa-user-shield"></i> Admin Account Controls (Synced to Your Google Account)
+              </div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Switch accounts, manage profiles, or export/import all accounts</p>
+            </div>
+            <button type="button" onclick="closeProfileFormModal(); openProfileHub(true);" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] flex items-center gap-1.5 shadow transition">
+              <i class="fa-solid fa-users-viewfinder"></i>
+              <span>Switch Profile (Hub)</span>
+            </button>
           </div>
-          <div id="settings-profile-order-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="exportAllProfilesJson()" class="px-3 py-1.5 rounded-xl bg-cinema-800 hover:bg-cinema-700 border border-cinema-600 text-white font-bold text-[11px] flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-export text-cinema-cyan"></i>
+              <span>Export All Accounts</span>
+            </button>
+            <label class="px-3 py-1.5 rounded-xl bg-cinema-800 hover:bg-cinema-700 border border-cinema-600 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition">
+              <i class="fa-solid fa-file-import text-cinema-gold"></i>
+              <span>Import All Accounts</span>
+              <input type="file" accept=".json" onchange="importAllProfilesJson(event)" class="hidden">
+            </label>
+            <button type="button" onclick="closeProfileFormModal(); confirmClearAllCommunityActivity()" class="px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/70 text-red-200 font-bold text-[11px] flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-broom"></i>
+              <span>Clear Social Feed</span>
+            </button>
+          </div>
+
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between">
+              <label class="text-slate-200 font-bold text-[11px] flex items-center gap-1.5">
+                <i class="fa-solid fa-grip-vertical text-cinema-gold"></i> Reorganize or Delete Profiles
+              </label>
+              <span class="text-[10px] text-slate-400">Drag directly into slot</span>
+            </div>
+            <div id="settings-profile-order-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+          </div>
         </div>
 
         <!-- Google Account & Sign Out -->
@@ -1462,14 +1490,9 @@
             </div>
             <div id="settings-google-email" class="text-[11px] text-slate-400 truncate mt-0.5"></div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button id="settings-admin-panel-btn" type="button" onclick="closeProfileFormModal(); openAdminPanelModal();" class="hidden px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/60 text-cinema-gold text-[11px] font-bold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-shield-halved"></i> Admin
-            </button>
-            <button type="button" onclick="signOutFromAccountSettings()" class="px-3 py-1.5 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 hover:border-red-500 text-slate-200 hover:text-white text-[11px] font-bold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-            </button>
-          </div>
+          <button type="button" onclick="signOutFromAccountSettings()" class="px-3 py-1.5 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 hover:border-red-500 text-slate-200 hover:text-white text-[11px] font-bold transition flex-shrink-0 flex items-center gap-1.5">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+          </button>
         </div>
 
         <!-- Safeguarded Library & List Deletion Zone (Moved from Main Views) -->
@@ -1830,8 +1853,10 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isAdmin() || (
         isSignedIn() &&
-        mediaDocId == ("lib_" + request.resource.data.profileId) &&
-        get(/databases/$(database)/documents/users/$(request.resource.data.profileId)).data.ownerUid == request.auth.uid
+        mediaDocId == ("lib_" + request.resource.data.profileId) && (
+          request.resource.data.ownerUid == request.auth.uid ||
+          get(/databases/$(database)/documents/users/$(request.resource.data.profileId)).data.ownerUid == request.auth.uid
+        )
       );
       allow delete: if isAdmin();
     }
@@ -1923,7 +1948,7 @@ service cloud.firestore {
   <!-- ========================================================= -->
   <!-- MODAL: FIRST-TIME GOOGLE SIGN-IN PROFILE LINKING          -->
   <!-- ========================================================= -->
-  <div id="google-link-profile-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+  <div id="google-link-profile-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto">
     <div class="w-full max-w-md bg-cinema-900 border border-cinema-700 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-xs my-8">
       <div class="flex items-center justify-between border-b border-cinema-800 pb-3">
         <div class="flex items-center gap-2.5">
@@ -1935,6 +1960,9 @@ service cloud.firestore {
             <p id="google-link-email-sub" class="text-[11px] text-emerald-400 font-semibold"></p>
           </div>
         </div>
+        <button type="button" onclick="handleGoogleAuthButtonClick()" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 text-slate-300 hover:text-white text-[10px] font-bold transition" title="Sign out and use a different Google account">
+          <i class="fa-solid fa-right-from-bracket mr-1"></i>Sign Out
+        </button>
       </div>
 
       <p class="text-[11px] text-slate-300 leading-relaxed">
@@ -1954,94 +1982,6 @@ service cloud.firestore {
           <i class="fa-solid fa-user-plus"></i>
           <span>Create &amp; Link New Profile</span>
         </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- MODAL: ADMIN CONTROL PANEL (GOOGLE AUTH VERIFIED)         -->
-  <!-- ========================================================= -->
-  <div id="admin-panel-modal" class="fixed inset-0 z-[65] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-    <div class="w-full max-w-xl bg-cinema-900 border border-amber-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 text-xs my-8">
-      <div class="flex items-center justify-between border-b border-cinema-800 pb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-cinema-gold flex items-center justify-center text-base">
-            <i class="fa-solid fa-user-shield"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-extrabold text-white">Administrator Control Panel</h3>
-            <p class="text-[11px] text-emerald-400 font-semibold"><i class="fa-solid fa-unlock mr-1"></i>Google Admin Verified • Privacy Bypass &amp; Multi-Account Management Active</p>
-          </div>
-        </div>
-        <button type="button" onclick="closeAdminPanelModal()" class="text-slate-400 hover:text-white">
-          <i class="fa-solid fa-xmark text-base"></i>
-        </button>
-      </div>
-
-      <!-- Admin-Exclusive Multi-Profile Hub Switcher Launcher -->
-      <div class="bg-amber-950/25 p-4 rounded-xl border border-amber-500/40 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div class="font-extrabold text-cinema-gold flex items-center gap-2 text-xs">
-            <i class="fa-solid fa-users-viewfinder"></i> Admin Multi-Profile Hub ("Who's Tracking Today?")
-          </div>
-          <p class="text-[11px] text-slate-300 mt-0.5">Open the full multi-account switcher grid to inspect, manage, or act as any user's profile.</p>
-        </div>
-        <button type="button" onclick="closeAdminPanelModal(); openProfileHub(true);" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs flex items-center gap-1.5 shadow transition">
-          <i class="fa-solid fa-repeat"></i>
-          <span>Open Profile Switcher</span>
-        </button>
-      </div>
-
-      <!-- Global Account Backup & Restore (Strictly inside Admin View) -->
-      <div class="bg-cinema-950 p-4 rounded-xl border border-cinema-800 space-y-3">
-        <div class="font-extrabold text-white flex items-center gap-2 text-xs">
-          <i class="fa-solid fa-database text-cinema-cyan"></i> Global Account Backup &amp; Restore
-        </div>
-        <p class="text-[11px] text-slate-400">Export or import the complete JSON database across all user accounts, libraries, custom lists, and social history.</p>
-        <div class="flex flex-wrap items-center gap-2.5 pt-1">
-          <button type="button" onclick="exportAllProfilesJson()" class="px-4 py-2 rounded-xl bg-cinema-800 hover:bg-cinema-700 border border-cinema-600 text-white font-bold flex items-center gap-2 transition">
-            <i class="fa-solid fa-file-export text-cinema-cyan"></i>
-            <span>Export All Accounts</span>
-          </button>
-          <label class="px-4 py-2 rounded-xl bg-cinema-800 hover:bg-cinema-700 border border-cinema-600 text-white font-bold flex items-center gap-2 cursor-pointer transition">
-            <i class="fa-solid fa-file-import text-cinema-gold"></i>
-            <span>Import All Accounts</span>
-            <input type="file" accept=".json" onchange="importAllProfilesJson(event)" class="hidden">
-          </label>
-        </div>
-      </div>
-
-      <!-- Reorganize Profiles (Drag-and-Drop in Admin Mode) -->
-      <div class="bg-cinema-950 p-4 rounded-xl border border-cinema-800 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="font-extrabold text-white flex items-center gap-2 text-xs">
-            <i class="fa-solid fa-grip-vertical text-cinema-gold"></i> Reorganize Profiles (Drag &amp; Drop)
-          </div>
-          <span class="text-[10px] text-slate-400">Drag profile rows into any slot</span>
-        </div>
-        <div id="admin-profile-order-list" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
-      </div>
-
-      <!-- Social Feed Moderation (Strictly inside Admin View) -->
-      <div class="bg-red-950/25 p-4 rounded-xl border border-red-800/60 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div class="font-extrabold text-red-300 flex items-center gap-2 text-xs">
-            <i class="fa-solid fa-broom"></i> Clear Social Feed
-          </div>
-          <p class="text-[10px] text-slate-400">Wipe all community activity feed posts across all accounts without affecting libraries.</p>
-        </div>
-        <button type="button" onclick="closeAdminPanelModal(); confirmClearAllCommunityActivity()" class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-trash-can"></i>
-          <span>Clear Social Feed</span>
-        </button>
-      </div>
-
-      <div class="flex items-center justify-between pt-3 border-t border-cinema-800">
-        <button type="button" onclick="logoutAdminMode()" class="px-4 py-2 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-rose-200 border border-rose-700/60 font-bold flex items-center gap-1.5">
-          <i class="fa-solid fa-lock"></i>
-          <span>Exit Admin Mode</span>
-        </button>
-        <button type="button" onclick="closeAdminPanelModal()" class="px-4 py-2 rounded-xl bg-cinema-accent hover:bg-cinema-accentHover text-white font-bold">Done</button>
       </div>
     </div>
   </div>
@@ -3441,12 +3381,8 @@ service cloud.firestore {
     }
 
     function handleHeaderProfileButtonClick() {
-      if (isAdminMode && isCurrentUserAdminEmail()) {
-        openProfileHub(true);
-      } else {
-        const prof = getActiveProfile();
-        if (prof) openRenameProfileModal(prof.id);
-      }
+      const prof = getActiveProfile();
+      if (prof) openRenameProfileModal(prof.id);
     }
 
     function openProfileHub(forceAdminOpen = false) {
@@ -3618,79 +3554,13 @@ service cloud.firestore {
       }
     }
 
-    /* ---------- ADMIN MODE AUTHENTICATION & 10-MINUTE AUTO SIGN-OUT ---------- */
-    const ADMIN_SESSION_DURATION_MS = 10 * 60 * 1000; // 10 minutes
-    let adminAutoLogoutTimer = null;
-    let adminCountdownInterval = null;
-    let adminSessionExpiresAt = 0;
-
-    function formatAdminRemainingTime() {
-      if (!isAdminMode || !adminSessionExpiresAt) return '';
-      const remMs = Math.max(0, adminSessionExpiresAt - Date.now());
-      const totalSec = Math.ceil(remMs / 1000);
-      const mins = Math.floor(totalSec / 60);
-      const secs = totalSec % 60;
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function startAdminSessionTimer() {
-      clearAdminSessionTimer();
-      adminSessionExpiresAt = null;
-      syncAdminUiButtons();
-    }
-
-    function clearAdminSessionTimer() {
-      if (adminAutoLogoutTimer) {
-        clearTimeout(adminAutoLogoutTimer);
-        adminAutoLogoutTimer = null;
-      }
-      if (adminCountdownInterval) {
-        clearInterval(adminCountdownInterval);
-        adminCountdownInterval = null;
-      }
-      adminSessionExpiresAt = 0;
-    }
-
+    /* ---------- ACCOUNT-SYNCED ADMIN PERMISSIONS (NO BUTTON OR TIMER) ---------- */
     function syncAdminUiButtons() {
-      const hBtn = document.getElementById('header-admin-btn');
-      const hLbl = document.getElementById('header-admin-btn-label');
-      const hubBtn = document.getElementById('hub-admin-btn');
-      const hubLbl = document.getElementById('hub-admin-btn-label');
+      isAdminMode = isCurrentUserAdminEmail();
       const profOrderWrap = document.getElementById('settings-profile-order-wrapper');
-      const actionIcon = document.getElementById('header-profile-action-icon');
-      const headerProfBtn = document.getElementById('header-profile-btn');
-      const countdown = formatAdminRemainingTime();
-      const canAccessAdmin = isCurrentUserAdminEmail() && !!getActiveProfile();
-
-      if (hBtn) {
-        if (!canAccessAdmin) {
-          hBtn.classList.add('hidden');
-        } else {
-          hBtn.classList.remove('hidden');
-          hBtn.className = isAdminMode
-            ? 'px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md border border-amber-500 text-cinema-gold text-xs font-extrabold flex items-center gap-1.5 transition shadow-xl whitespace-nowrap'
-            : 'px-3 py-1.5 rounded-xl bg-cinema-900/95 hover:bg-cinema-800 backdrop-blur-md border border-cinema-700 text-slate-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xl whitespace-nowrap';
-        }
-      }
-      if (hLbl) hLbl.textContent = isAdminMode ? `Admin (${countdown || 'Active'})` : 'Admin';
-      if (hubLbl) hubLbl.textContent = isAdminMode ? `Admin Panel (${countdown || 'Active'})` : 'Admin Mode';
-
-      if (actionIcon) {
-        actionIcon.className = (isAdminMode && canAccessAdmin)
-          ? 'fa-solid fa-repeat text-[10px] text-cinema-gold'
-          : 'fa-solid fa-gear text-[10px] text-slate-400';
-      }
-      if (headerProfBtn) {
-        headerProfBtn.title = (isAdminMode && canAccessAdmin)
-          ? 'Admin: Switch Active Profile (Who\'s Tracking Today?)'
-          : 'Your Synced Profile & Account Settings';
-      }
-
       if (profOrderWrap) {
         profOrderWrap.classList.toggle('hidden', !isAdminMode);
       }
-
-      // Sync Google Auth button appearance
       const gEmail = document.getElementById('settings-google-email');
       if (gEmail && currentAuthUser) {
         gEmail.textContent = currentAuthUser.email || 'Signed in with Google';
@@ -3713,65 +3583,6 @@ service cloud.firestore {
       }
     }
 
-    function handleAdminButtonClick() {
-      if (!isCurrentUserAdminEmail()) {
-        showToastNotification('Admin access requires signing in with the Admin Google account.');
-        return;
-      }
-      if (!isAdminMode) {
-        isAdminMode = true;
-        startAdminSessionTimer();
-        syncAdminUiButtons();
-        renderProfileHub();
-        if (currentNavTab === 'social') renderSocialView();
-        if (currentNavTab === 'watchlist') renderWatchlistView();
-        showToastNotification('Admin Mode activated via Google Auth!');
-      }
-      openAdminPanelModal();
-    }
-
-    function openAdminLoginModal() {
-      if (isCurrentUserAdminEmail()) {
-        handleAdminButtonClick();
-      } else {
-        showToastNotification('Sign in with your Admin Google account to use Admin Mode.');
-      }
-    }
-
-    function closeAdminLoginModal() {}
-
-    function openAdminPanelModal() {
-      if (!isCurrentUserAdminEmail()) {
-        showToastNotification('Admin Mode is only accessible to the configured Admin Google email.');
-        return;
-      }
-      if (!isAdminMode) {
-        isAdminMode = true;
-        startAdminSessionTimer();
-        syncAdminUiButtons();
-      }
-      renderSettingsProfileOrderList();
-      const modal = document.getElementById('admin-panel-modal');
-      if (modal) modal.classList.remove('hidden');
-    }
-
-    function closeAdminPanelModal() {
-      const modal = document.getElementById('admin-panel-modal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function logoutAdminMode(isExpired = false) {
-      isAdminMode = false;
-      clearAdminSessionTimer();
-      closeAdminPanelModal();
-      closeAdminProfileHub();
-      syncAdminUiButtons();
-      renderProfileHub();
-      if (currentNavTab === 'social') renderSocialView();
-      if (currentNavTab === 'watchlist') renderWatchlistView();
-      showToastNotification(isExpired ? 'Admin session expired (10m limit). Click Admin to re-enable.' : 'Exited Admin Mode');
-    }
-
     /* ---------- FIRST-TIME GOOGLE SIGN-IN ACCOUNT LINKING FLOW ---------- */
     function showAuthGateScreen(isChecking = false) {
       const gate = document.getElementById('auth-gate-screen');
@@ -3780,7 +3591,6 @@ service cloud.firestore {
       const headerEl = document.getElementById('app-main-header');
       const mainEl = document.getElementById('app-main-content');
       const bottomCtrl = document.getElementById('fixed-bottom-right-controls');
-      const adminBtn = document.getElementById('header-admin-btn');
 
       if (gate) gate.classList.remove('hidden');
       if (loading) loading.classList.toggle('hidden', !isChecking);
@@ -3788,7 +3598,6 @@ service cloud.firestore {
       if (headerEl) headerEl.classList.add('hidden');
       if (mainEl) mainEl.classList.add('hidden');
       if (bottomCtrl) bottomCtrl.classList.add('hidden');
-      if (adminBtn) adminBtn.classList.add('hidden');
       applyNeutralHubTheme();
     }
 
@@ -3807,67 +3616,57 @@ service cloud.firestore {
     async function handleGoogleAuthStateChanged(user) {
       try {
         currentAuthUser = user || null;
+        isAdminMode = isCurrentUserAdminEmail();
+
         if (!user) {
           masterData.activeProfileId = null;
-          if (isAdminMode) {
-            isAdminMode = false;
-            clearAdminSessionTimer();
-            closeAdminPanelModal();
-            closeAdminProfileHub();
-          }
+          closeAdminProfileHub();
           closeGoogleLinkProfileModal();
           showAuthGateScreen(false);
           syncAdminUiButtons();
           return;
         }
 
-        // Pull latest profiles from Firestore now that the user is authenticated
+        // Pull latest profiles from Firestore (with a 4.5s timeout so login never hangs)
         if (window.CinePulseCloud && typeof window.CinePulseCloud.pullAll === 'function') {
           try {
-            await window.CinePulseCloud.pullAll();
+            await Promise.race([
+              window.CinePulseCloud.pullAll(),
+              new Promise(resolve => setTimeout(resolve, 4500))
+            ]);
           } catch (pullErr) {
             console.warn('Firestore pull on auth failed:', pullErr);
           }
         }
 
-      const uid = user.uid;
-      const email = (user.email || '').trim().toLowerCase();
+        const uid = user.uid;
+        const email = (user.email || '').trim().toLowerCase();
 
-      // Automatically unlock Admin capability if email matches ADMIN_EMAIL
-      if (isCurrentUserAdminEmail()) {
-        isAdminMode = true;
-        startAdminSessionTimer();
-      } else {
-        isAdminMode = false;
-        clearAdminSessionTimer();
-        closeAdminProfileHub();
-      }
+        // Check if this Google account is already linked to a CinePulse profile
+        let linkedProf = (masterData.profiles || []).find(p =>
+          (p.ownerUid && p.ownerUid === uid) ||
+          (email && p.ownerEmail && p.ownerEmail.trim().toLowerCase() === email)
+        );
 
-      // Check if this Google account is already linked to a CinePulse profile
-      let linkedProf = (masterData.profiles || []).find(p =>
-        (p.ownerUid && p.ownerUid === uid) ||
-        (email && p.ownerEmail && p.ownerEmail.trim().toLowerCase() === email)
-      );
-
-      if (linkedProf) {
-        linkedProf.ownerUid = uid;
-        if (user.email) linkedProf.ownerEmail = user.email;
-        masterData.activeProfileId = linkedProf.id;
-        closeGoogleLinkProfileModal();
-        unlockAppAfterSignIn();
-        saveMasterDataToStorage();
-        syncAdminUiButtons();
-        syncActiveProfileHeader();
-        refreshDiscoverData();
-        if (currentNavTab === 'search') renderSearchResults();
-        if (currentNavTab === 'watchlist') renderWatchlistView();
-        if (currentNavTab === 'social') renderSocialView();
-        showToastNotification(`Signed in as ${linkedProf.username} (${user.email || 'Google'})`);
-      } else {
-        masterData.activeProfileId = null;
-        syncAdminUiButtons();
-        openGoogleLinkProfileModal(user);
-      }
+        if (linkedProf) {
+          linkedProf.ownerUid = uid;
+          if (user.email) linkedProf.ownerEmail = user.email;
+          masterData.activeProfileId = linkedProf.id;
+          closeGoogleLinkProfileModal();
+          unlockAppAfterSignIn();
+          saveMasterDataToStorage();
+          syncAdminUiButtons();
+          syncActiveProfileHeader();
+          refreshDiscoverData();
+          if (currentNavTab === 'search') renderSearchResults();
+          if (currentNavTab === 'watchlist') renderWatchlistView();
+          if (currentNavTab === 'social') renderSocialView();
+          showToastNotification(`Signed in as ${linkedProf.username}`);
+        } else {
+          masterData.activeProfileId = null;
+          syncAdminUiButtons();
+          openGoogleLinkProfileModal(user);
+        }
       } catch (authErr) {
         console.error('Auth state error:', authErr);
         showAuthGateScreen(false);
@@ -3875,8 +3674,14 @@ service cloud.firestore {
     }
 
     function openGoogleLinkProfileModal(user) {
+      const gate = document.getElementById('auth-gate-screen');
+      const loading = document.getElementById('auth-gate-loading');
+      const actions = document.getElementById('auth-gate-actions');
+      if (loading) loading.classList.add('hidden');
+      if (actions) actions.classList.remove('hidden');
+      if (gate) gate.classList.add('hidden');
+
       const modal = document.getElementById('google-link-profile-modal');
-      if (typeof showAuthGateScreen === 'function') showAuthGateScreen(false);
       const emailSub = document.getElementById('google-link-email-sub');
       const listEl = document.getElementById('google-unlinked-profiles-list');
       const secEl = document.getElementById('google-unlinked-profiles-section');
@@ -3940,7 +3745,6 @@ service cloud.firestore {
       masterData.activeProfileId = prof.id;
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
-      syncAdminUiButtons();
       saveMasterDataToStorage();
       if (window.CinePulseCloud && typeof window.CinePulseCloud.linkProfileOwner === 'function') {
         await window.CinePulseCloud.linkProfileOwner(prof.id, currentAuthUser.uid, currentAuthUser.email || '');
@@ -3986,7 +3790,6 @@ service cloud.firestore {
       masterData.activeProfileId = newId;
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
-      syncAdminUiButtons();
       saveMasterDataToStorage();
       if (window.CinePulseCloud && typeof window.CinePulseCloud.pushAll === 'function') {
         window.CinePulseCloud.pushAll(masterData, true);
@@ -4195,7 +3998,7 @@ service cloud.firestore {
               <button type="button" onclick="moveProfileOrder('${p.id}', -1)" ${idx === 0 ? 'disabled' : ''} class="px-1.5 py-0.5 rounded bg-cinema-800 hover:bg-cinema-700 text-slate-300 disabled:opacity-30" title="Move Up"><i class="fa-solid fa-arrow-up text-[10px]"></i></button>
               <button type="button" onclick="moveProfileOrder('${p.id}', 1)" ${idx === masterData.profiles.length - 1 ? 'disabled' : ''} class="px-1.5 py-0.5 rounded bg-cinema-800 hover:bg-cinema-700 text-slate-300 disabled:opacity-30" title="Move Down"><i class="fa-solid fa-arrow-down text-[10px]"></i></button>
               ${isAdminMode ? `
-                <button type="button" onclick="closeAdminPanelModal(); closeProfileFormModal(); openDeleteProfileModal('${p.id}')" class="px-2 py-0.5 rounded bg-red-950/70 hover:bg-red-800 border border-red-800/60 text-red-300 hover:text-white text-[10px] font-bold flex items-center gap-1" title="Admin Only: Delete Account">
+                <button type="button" onclick="closeProfileFormModal(); openDeleteProfileModal('${p.id}')" class="px-2 py-0.5 rounded bg-red-950/70 hover:bg-red-800 border border-red-800/60 text-red-300 hover:text-white text-[10px] font-bold flex items-center gap-1" title="Admin Only: Delete Account">
                   <i class="fa-solid fa-trash-can text-[9px]"></i><span>Delete</span>
                 </button>
               ` : ''}
@@ -4205,8 +4008,7 @@ service cloud.firestore {
       }).join('');
       const listEl = document.getElementById('settings-profile-order-list');
       if (listEl) listEl.innerHTML = buildHtml();
-      const adminListEl = document.getElementById('admin-profile-order-list');
-      if (adminListEl) adminListEl.innerHTML = buildHtml();
+
     }
 
     /* ---------- DRAG-AND-DROP CATEGORY REORGANIZATION IN USER SETTINGS ---------- */
@@ -4477,8 +4279,6 @@ service cloud.firestore {
         if (currentAuthUser) {
           gEmail.textContent = currentAuthUser.email || 'Signed in with Google';
           gZone.classList.remove('hidden');
-          const adminSetBtn = document.getElementById('settings-admin-panel-btn');
-          if (adminSetBtn) adminSetBtn.classList.toggle('hidden', !isCurrentUserAdminEmail());
         } else {
           gZone.classList.add('hidden');
         }
@@ -12430,6 +12230,7 @@ service cloud.firestore {
   <!-- ========================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
     import {
       getAuth,
       GoogleAuthProvider,
@@ -12460,6 +12261,7 @@ service cloud.firestore {
     };
 
     let app = null;
+    let analytics = null;
     let auth = null;
     let googleProvider = null;
     let db = null;
@@ -12499,16 +12301,11 @@ service cloud.firestore {
 
     try {
       app = initializeApp(firebaseConfig);
+      try { analytics = getAnalytics(app); } catch (anErr) {}
       auth = getAuth(app);
       googleProvider = new GoogleAuthProvider();
       db = getFirestore(app);
       setCloudUiState('Connecting Cloud...', true);
-
-      onAuthStateChanged(auth, (user) => {
-        if (typeof handleGoogleAuthStateChanged === 'function') {
-          handleGoogleAuthStateChanged(user);
-        }
-      });
     } catch (initErr) {
       console.warn('Firebase init fallback:', initErr);
       setCloudUiState('Local Cache', false);
@@ -12545,37 +12342,31 @@ service cloud.firestore {
     }
 
     // Scoped Firestore Push:
-    // - Admin (or unauthenticated fallback when testing locally) can write all profiles
-    // - Regular authenticated users write their own users/{profileId} & media/lib_{profileId} documents,
-    //   plus socialFeed/notifications updates for social interactions
+    // - Admin can write all profiles
+    // - Regular authenticated users write their own users/{profileId} FIRST (so get() rules on media/lib_{profileId} always succeed),
+    //   and never bundle unauthorized writes to other users' profiles into the same atomic batch.
     async function executeDirectFirestorePush(state, forceWrite = false) {
       if (!db || (!forceWrite && (isRemoteApplying || !hasInitialCloudSyncDone)) || !state) return;
       isPushingToCloud = true;
       lastLocalPushTimestamp = Date.now();
       try {
         setCloudUiState('Syncing...', true);
-        const batch = writeBatch(db);
         const signedInUid = auth && auth.currentUser ? auth.currentUser.uid : null;
+        const signedInEmail = (auth && auth.currentUser && auth.currentUser.email) ? auth.currentUser.email.trim().toLowerCase() : '';
         const adminCanWriteAll = Boolean(isAdminMode && isCurrentUserAdminEmail());
 
-        // 1. Master state
-        batch.set(doc(collection(db, 'appState'), 'master'), {
-          activeProfileId: state.activeProfileId || 'p1',
-          profileOrder: (state.profiles || []).map(p => p.id),
-          schemaVersion: state.schemaVersion || 6,
-          universalSeriesTags: state.universalSeriesTags || {},
-          updatedAt: Date.now()
-        }, { merge: true });
-
-        // 2. Profiles, media, socialFeed & catalogues
-        (state.profiles || []).forEach((prof, orderIdx) => {
+        // Step 1: Write own (and if Admin, all) users/{prof.id} documents FIRST so they exist in Firestore before media/lib_{prof.id} rules evaluate get()
+        const profilesList = state.profiles || [];
+        for (let orderIdx = 0; orderIdx < profilesList.length; orderIdx++) {
+          const prof = profilesList[orderIdx];
           const isOwnProfile = Boolean(
             (signedInUid && prof.ownerUid === signedInUid) ||
+            (signedInEmail && prof.ownerEmail && prof.ownerEmail.trim().toLowerCase() === signedInEmail) ||
             (!signedInUid && prof.id === state.activeProfileId)
           );
 
           if (adminCanWriteAll || isOwnProfile) {
-            batch.set(doc(collection(db, 'users'), prof.id), {
+            await setDoc(doc(collection(db, 'users'), prof.id), {
               id: prof.id,
               orderIndex: orderIdx,
               username: prof.username,
@@ -12583,8 +12374,8 @@ service cloud.firestore {
               bio: prof.bio || '',
               theme: prof.theme || 'dark',
               pfp: prof.pfp || '',
-              ownerUid: prof.ownerUid || '',
-              ownerEmail: prof.ownerEmail || '',
+              ownerUid: prof.ownerUid || (isOwnProfile && signedInUid ? signedInUid : ''),
+              ownerEmail: prof.ownerEmail || (isOwnProfile && signedInEmail ? auth.currentUser.email : ''),
               favorites: prof.favorites || [],
               customLists: prof.customLists || [],
               library: prof.library || [],
@@ -12596,10 +12387,31 @@ service cloud.firestore {
               defaultPrivateEntries: Boolean(prof.defaultPrivateEntries),
               updatedAt: Date.now()
             }, { merge: true });
+          }
+        }
 
+        // Step 2: Commit media, catalogues, appState, and socialFeed for permitted documents
+        const batch = writeBatch(db);
+
+        batch.set(doc(collection(db, 'appState'), 'master'), {
+          activeProfileId: state.activeProfileId || 'p1',
+          profileOrder: profilesList.map(p => p.id),
+          schemaVersion: state.schemaVersion || 6,
+          universalSeriesTags: state.universalSeriesTags || {},
+          updatedAt: Date.now()
+        }, { merge: true });
+
+        profilesList.forEach((prof) => {
+          const isOwnProfile = Boolean(
+            (signedInUid && prof.ownerUid === signedInUid) ||
+            (signedInEmail && prof.ownerEmail && prof.ownerEmail.trim().toLowerCase() === signedInEmail) ||
+            (!signedInUid && prof.id === state.activeProfileId)
+          );
+
+          if (adminCanWriteAll || isOwnProfile) {
             batch.set(doc(collection(db, 'media'), `lib_${prof.id}`), {
               profileId: prof.id,
-              ownerUid: prof.ownerUid || '',
+              ownerUid: prof.ownerUid || (isOwnProfile && signedInUid ? signedInUid : ''),
               username: prof.username,
               items: prof.library || [],
               universalSeriesTags: state.universalSeriesTags || {},
@@ -12610,19 +12422,12 @@ service cloud.firestore {
               batch.set(doc(collection(db, 'catalogues'), cat.id), {
                 ...cat,
                 ownerId: prof.id,
-                ownerUid: prof.ownerUid || '',
+                ownerUid: prof.ownerUid || (isOwnProfile && signedInUid ? signedInUid : ''),
                 ownerUsername: prof.username,
                 type: 'customCatalogue',
                 updatedAt: Date.now()
               }, { merge: true });
             });
-          } else if (signedInUid) {
-            // Regular user interacting with a friend's social post (likes/comments/notifications)
-            batch.set(doc(collection(db, 'users'), prof.id), {
-              activityLog: prof.activityLog || [],
-              notifications: prof.notifications || [],
-              updatedAt: Date.now()
-            }, { merge: true });
           }
 
           batch.set(doc(collection(db, 'socialFeed'), `feed_${prof.id}`), {
@@ -12635,24 +12440,45 @@ service cloud.firestore {
 
         (state.sharedLists || []).forEach(sl => {
           const memberUids = (sl.memberIds || [])
-            .map(pid => (state.profiles || []).find(p => p.id === pid)?.ownerUid)
+            .map(pid => profilesList.find(p => p.id === pid)?.ownerUid)
             .filter(Boolean);
-          const ownerProf = (state.profiles || []).find(p => p.id === sl.ownerId);
-          batch.set(doc(collection(db, 'catalogues'), sl.id), {
-            ...sl,
-            ownerUid: ownerProf?.ownerUid || '',
-            memberUids,
-            type: 'sharedList',
-            updatedAt: Date.now()
-          }, { merge: true });
+          const ownerProf = profilesList.find(p => p.id === sl.ownerId);
+          const canWriteSharedList = adminCanWriteAll || !signedInUid ||
+            (ownerProf && ownerProf.ownerUid === signedInUid) ||
+            memberUids.includes(signedInUid);
+          if (canWriteSharedList) {
+            batch.set(doc(collection(db, 'catalogues'), sl.id), {
+              ...sl,
+              ownerUid: ownerProf?.ownerUid || '',
+              memberUids,
+              type: 'sharedList',
+              updatedAt: Date.now()
+            }, { merge: true });
+          }
         });
 
         await batch.commit();
+
+        // Step 3: Best-effort social interactions (likes/comments/notifications) on peer profiles
+        if (signedInUid && !adminCanWriteAll) {
+          for (const prof of profilesList) {
+            if (prof.ownerUid !== signedInUid) {
+              try {
+                await setDoc(doc(collection(db, 'users'), prof.id), {
+                  activityLog: prof.activityLog || [],
+                  notifications: prof.notifications || [],
+                  updatedAt: Date.now()
+                }, { merge: true });
+              } catch (peerErr) {}
+            }
+          }
+        }
+
         lastLocalPushTimestamp = Date.now();
         setCloudUiState('Cloud Synced', true);
       } catch (err) {
         console.warn('Firestore write notice:', err);
-        setCloudUiState('Local + Cloud Ready', true);
+        setCloudUiState('Local + Cloud Ready', false);
       } finally {
         setTimeout(() => { isPushingToCloud = false; }, 600);
       }
@@ -12846,8 +12672,27 @@ service cloud.firestore {
           if (data && data.type === 'sharedList') loadedShared.push(data);
         });
 
+        let needsImmediatePushForRecoveredProfile = false;
         if (loadedProfiles.length > 0) {
           isRemoteApplying = true;
+          // If the signed-in user created a profile locally that failed to push earlier, preserve and sync it!
+          if (auth && auth.currentUser) {
+            const uid = auth.currentUser.uid;
+            const email = (auth.currentUser.email || '').trim().toLowerCase();
+            const localOwned = (masterData.profiles || []).find(p =>
+              (p.ownerUid && p.ownerUid === uid) ||
+              (email && p.ownerEmail && p.ownerEmail.trim().toLowerCase() === email)
+            );
+            const existsInCloud = loadedProfiles.some(p =>
+              (p.ownerUid && p.ownerUid === uid) ||
+              (email && p.ownerEmail && p.ownerEmail.trim().toLowerCase() === email) ||
+              (localOwned && p.id === localOwned.id)
+            );
+            if (localOwned && !existsInCloud) {
+              loadedProfiles.push(localOwned);
+              needsImmediatePushForRecoveredProfile = true;
+            }
+          }
           masterData.profiles = loadedProfiles;
           if (loadedShared.length > 0) masterData.sharedLists = loadedShared;
           if (masterDoc.universalSeriesTags) {
@@ -12870,6 +12715,11 @@ service cloud.firestore {
           if (currentNavTab === 'watchlist') renderWatchlistView();
           if (currentNavTab === 'social') renderSocialView();
           isRemoteApplying = false;
+        }
+
+        if (needsImmediatePushForRecoveredProfile) {
+          hasInitialCloudSyncDone = true;
+          await executeDirectFirestorePush(masterData, true);
         }
 
         hasInitialCloudSyncDone = true;
@@ -12918,7 +12768,7 @@ service cloud.firestore {
         }
       },
       schedulePush: (state) => scheduleCloudPush(state),
-      pushAll: (state, forceWrite = false) => executeDirectFirestorePush(state, forceWrite),
+      pushAll: (state, force = false) => executeDirectFirestorePush(state, force),
       pullAll: () => pullAllFromFirestore(),
       lockForImport: (flag) => {
         isImportingData = Boolean(flag);
@@ -12947,7 +12797,16 @@ service cloud.firestore {
       }
     };
 
-    // Auth-gated: pullAllFromFirestore() is triggered inside handleGoogleAuthStateChanged once signed in
+    // Register onAuthStateChanged AFTER window.CinePulseCloud is ready so pullAll() always runs
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (typeof handleGoogleAuthStateChanged === 'function') {
+          handleGoogleAuthStateChanged(user);
+        }
+      });
+    } else if (typeof showAuthGateScreen === 'function') {
+      showAuthGateScreen(false);
+    }
   </script>
 </body>
 </html>
