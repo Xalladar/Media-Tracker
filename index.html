@@ -12430,7 +12430,6 @@ service cloud.firestore {
   <!-- ========================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
     import {
       getAuth,
       GoogleAuthProvider,
@@ -12461,7 +12460,6 @@ service cloud.firestore {
     };
 
     let app = null;
-    let analytics = null;
     let auth = null;
     let googleProvider = null;
     let db = null;
@@ -12501,7 +12499,6 @@ service cloud.firestore {
 
     try {
       app = initializeApp(firebaseConfig);
-      try { analytics = getAnalytics(app); } catch (anErr) {}
       auth = getAuth(app);
       googleProvider = new GoogleAuthProvider();
       db = getFirestore(app);
