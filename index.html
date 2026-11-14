@@ -12574,7 +12574,7 @@ service cloud.firestore {
             (!signedInUid && prof.id === state.activeProfileId)
           );
 
-          if (adminCanWriteAll || isOwnProfile || forceWrite) {
+          if (adminCanWriteAll || isOwnProfile) {
             batch.set(doc(collection(db, 'users'), prof.id), {
               id: prof.id,
               orderIndex: orderIdx,
@@ -12905,8 +12905,6 @@ service cloud.firestore {
 
     window.CinePulseCloud = {
       toggleGoogleAuth: () => toggleGoogleAuthSignIn(),
-      pullAll: pullAllFromFirestore,
-      pushAll: pushAllToFirestore,
       linkProfileOwner: linkProfileOwnerInFirestore,
       deleteProfileFromCloud: (profileId, catalogueIds, sharedLists, state) =>
         deleteProfileDocumentsFromFirestore(profileId, catalogueIds, sharedLists, state),
@@ -12920,7 +12918,7 @@ service cloud.firestore {
         }
       },
       schedulePush: (state) => scheduleCloudPush(state),
-      pushAll: (state) => executeDirectFirestorePush(state),
+      pushAll: (state, forceWrite = false) => executeDirectFirestorePush(state, forceWrite),
       pullAll: () => pullAllFromFirestore(),
       lockForImport: (flag) => {
         isImportingData = Boolean(flag);
