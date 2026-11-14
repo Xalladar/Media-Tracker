@@ -537,10 +537,6 @@
 
       <!-- Active Profile & Settings Toolbar (Google Sign-In + Personal Account Settings) -->
       <div class="flex items-center gap-1.5 flex-shrink-0 pr-24 sm:pr-28">
-        <button id="header-google-auth-btn" type="button" onclick="handleGoogleAuthButtonClick()" class="px-2.5 py-1.5 rounded-xl bg-cinema-900 hover:bg-cinema-800 border border-cinema-700 text-xs font-bold text-slate-100 flex items-center gap-1.5 transition flex-shrink-0 whitespace-nowrap" title="Sign in with Google to sync your profile across PC &amp; mobile">
-          <i id="header-google-auth-icon" class="fa-brands fa-google text-cinema-gold"></i>
-          <span id="header-google-auth-label">Sign in with Google</span>
-        </button>
 
         <button id="header-profile-btn" type="button" onclick="handleHeaderProfileButtonClick()" class="px-2.5 py-1.5 rounded-xl bg-cinema-900 hover:bg-cinema-800 border border-cinema-700 text-xs font-semibold flex items-center gap-1.5 transition flex-shrink-0 whitespace-nowrap" title="Your Synced Profile &amp; Account Settings">
           <div id="header-profile-avatar" class="w-6 h-6 rounded-lg bg-cinema-accent flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
@@ -1462,6 +1458,19 @@
           <div id="settings-profile-order-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
         </div>
 
+        <!-- Google Account & Sign Out -->
+        <div id="settings-google-account-zone" class="hidden bg-cinema-950/70 border border-cinema-800 rounded-xl p-3 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-brands fa-google text-emerald-400"></i> Signed-In Google Account
+            </div>
+            <div id="settings-google-email" class="text-[11px] text-slate-400 truncate mt-0.5"></div>
+          </div>
+          <button type="button" onclick="signOutFromAccountSettings()" class="px-3 py-1.5 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 hover:border-red-500 text-slate-200 hover:text-white text-[11px] font-bold transition flex-shrink-0 flex items-center gap-1.5">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+          </button>
+        </div>
+
         <!-- Safeguarded Library & List Deletion Zone (Moved from Main Views) -->
         <div id="settings-safeguard-zone" class="bg-red-950/25 border border-red-800/60 rounded-xl p-3 space-y-2.5">
           <div class="font-bold text-red-300 flex items-center gap-1.5 text-xs">
@@ -1796,7 +1805,7 @@ service cloud.firestore {
 
     // Replace "myemail@gmail.com" with your exact Google Admin email address
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == "myemail@gmail.com";
+      return isSignedIn() && request.auth.token.email == "alex.gavin05@gmail.com";
     }
 
     match /users/{profileId} {
@@ -2148,7 +2157,7 @@ service cloud.firestore {
     };
 
     // Admin Google Email Configuration (Fill in your exact Google email address here and in Firestore Rules)
-    const ADMIN_EMAIL = "myemail@gmail.com";
+    const ADMIN_EMAIL = "alex.gavin05@gmail.com";
 
     // Google Auth & Admin state variables
     let currentAuthUser = null;
@@ -2792,6 +2801,12 @@ service cloud.firestore {
       loadMasterDataFromStorage();
       applyNeutralHubTheme();
       setupInfiniteScrollObservers();
+      setTimeout(() => {
+        const loading = document.getElementById('auth-gate-loading');
+        if (!currentAuthUser && loading && !loading.classList.contains('hidden')) {
+          showAuthGateScreen(false);
+        }
+      }, 2000);
     });
 
     function closeAdminProfileHub() {
@@ -3688,21 +3703,9 @@ service cloud.firestore {
       }
 
       // Sync Google Auth button appearance
-      const authBtn = document.getElementById('header-google-auth-btn');
-      const authIcon = document.getElementById('header-google-auth-icon');
-      const authLbl = document.getElementById('header-google-auth-label');
-      if (authBtn && authLbl && authIcon) {
-        if (currentAuthUser) {
-          authBtn.className = 'px-2.5 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-700/70 text-xs font-bold text-emerald-300 flex items-center gap-1.5 transition flex-shrink-0 whitespace-nowrap';
-          authIcon.className = 'fa-brands fa-google text-emerald-400';
-          authLbl.textContent = currentAuthUser.email ? currentAuthUser.email.split('@')[0] : 'Signed In';
-          authBtn.title = `Signed in as ${currentAuthUser.email || 'Google User'} (Click to Sign Out)`;
-        } else {
-          authBtn.className = 'px-2.5 py-1.5 rounded-xl bg-cinema-900 hover:bg-cinema-800 border border-cinema-700 text-xs font-bold text-slate-100 flex items-center gap-1.5 transition flex-shrink-0 whitespace-nowrap';
-          authIcon.className = 'fa-brands fa-google text-cinema-gold';
-          authLbl.textContent = 'Sign in with Google';
-          authBtn.title = 'Sign in with Google to sync your profile across PC & mobile';
-        }
+      const gEmail = document.getElementById('settings-google-email');
+      if (gEmail && currentAuthUser) {
+        gEmail.textContent = currentAuthUser.email || 'Signed in with Google';
       }
     }
 
@@ -3711,6 +3714,14 @@ service cloud.firestore {
         window.CinePulseCloud.toggleGoogleAuth();
       } else {
         showToastNotification('Firebase Auth is initializing...');
+      }
+    }
+
+    function signOutFromAccountSettings() {
+      if (!currentAuthUser) return;
+      closeProfileFormModal();
+      if (window.CinePulseCloud && typeof window.CinePulseCloud.toggleGoogleAuth === 'function') {
+        window.CinePulseCloud.toggleGoogleAuth();
       }
     }
 
@@ -3806,25 +3817,30 @@ service cloud.firestore {
     }
 
     async function handleGoogleAuthStateChanged(user) {
-      currentAuthUser = user || null;
-      if (!user) {
-        masterData.activeProfileId = null;
-        if (isAdminMode) {
-          isAdminMode = false;
-          clearAdminSessionTimer();
-          closeAdminPanelModal();
-          closeAdminProfileHub();
+      try {
+        currentAuthUser = user || null;
+        if (!user) {
+          masterData.activeProfileId = null;
+          if (isAdminMode) {
+            isAdminMode = false;
+            clearAdminSessionTimer();
+            closeAdminPanelModal();
+            closeAdminProfileHub();
+          }
+          closeGoogleLinkProfileModal();
+          showAuthGateScreen(false);
+          syncAdminUiButtons();
+          return;
         }
-        closeGoogleLinkProfileModal();
-        showAuthGateScreen(false);
-        syncAdminUiButtons();
-        return;
-      }
 
-      // Pull latest profiles from Firestore now that the user is authenticated
-      if (window.CinePulseCloud && typeof window.CinePulseCloud.pullAll === 'function') {
-        await window.CinePulseCloud.pullAll();
-      }
+        // Pull latest profiles from Firestore now that the user is authenticated
+        if (window.CinePulseCloud && typeof window.CinePulseCloud.pullAll === 'function') {
+          try {
+            await window.CinePulseCloud.pullAll();
+          } catch (pullErr) {
+            console.warn('Firestore pull on auth failed:', pullErr);
+          }
+        }
 
       const uid = user.uid;
       const email = (user.email || '').trim().toLowerCase();
@@ -3864,6 +3880,10 @@ service cloud.firestore {
         syncAdminUiButtons();
         openGoogleLinkProfileModal(user);
       }
+      } catch (authErr) {
+        console.error('Auth state error:', authErr);
+        showAuthGateScreen(false);
+      }
     }
 
     function openGoogleLinkProfileModal(user) {
@@ -3879,7 +3899,7 @@ service cloud.firestore {
         nameInp.value = user.displayName ? user.displayName.split(' ')[0] : (user.email ? user.email.split('@')[0] : '');
       }
 
-      const unlinkedProfiles = (masterData.profiles || []).filter(p => !p.ownerUid);
+      const unlinkedProfiles = (masterData.profiles || []).filter(p => !p.ownerUid && !p.ownerEmail);
       if (secEl && listEl) {
         if (unlinkedProfiles.length === 0) {
           secEl.classList.add('hidden');
@@ -3913,10 +3933,16 @@ service cloud.firestore {
       if (modal) modal.classList.add('hidden');
     }
 
-    function claimExistingProfileWithGoogle(profileId) {
+    async function claimExistingProfileWithGoogle(profileId) {
       if (!currentAuthUser) return;
       const prof = (masterData.profiles || []).find(p => p.id === profileId);
       if (!prof) return;
+      const currentEmail = (currentAuthUser.email || '').trim().toLowerCase();
+      const existingEmail = (prof.ownerEmail || '').trim().toLowerCase();
+      if ((prof.ownerUid && prof.ownerUid !== currentAuthUser.uid) || (existingEmail && existingEmail !== currentEmail)) {
+        showToastNotification('This profile is already locked to another Google account.');
+        return;
+      }
       prof.ownerUid = currentAuthUser.uid;
       prof.ownerEmail = currentAuthUser.email || '';
       if (!prof.pfp && currentAuthUser.photoURL) {
@@ -3926,6 +3952,9 @@ service cloud.firestore {
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
       saveMasterDataToStorage();
+      if (window.CinePulseCloud && typeof window.CinePulseCloud.linkProfileOwner === 'function') {
+        await window.CinePulseCloud.linkProfileOwner(prof.id, currentAuthUser.uid, currentAuthUser.email || '');
+      }
       syncActiveProfileHeader();
       refreshDiscoverData();
       if (currentNavTab === 'watchlist') renderWatchlistView();
@@ -3968,6 +3997,9 @@ service cloud.firestore {
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
       saveMasterDataToStorage();
+      if (window.CinePulseCloud && typeof window.CinePulseCloud.pushAll === 'function') {
+        window.CinePulseCloud.pushAll(masterData, true);
+      }
       syncActiveProfileHeader();
       refreshDiscoverData();
       if (currentNavTab === 'watchlist') renderWatchlistView();
@@ -4417,6 +4449,8 @@ service cloud.firestore {
       renderSettingsCategoryOrderList(null);
       renderSettingsProfileOrderList();
       renderSettingsDangerActions(null);
+      const gZone = document.getElementById('settings-google-account-zone');
+      if (gZone) gZone.classList.add('hidden');
       document.getElementById('profile-form-modal').classList.remove('hidden');
     }
 
@@ -4446,6 +4480,16 @@ service cloud.firestore {
       renderSettingsCategoryOrderList(prof);
       renderSettingsProfileOrderList();
       renderSettingsDangerActions(prof);
+      const gZone = document.getElementById('settings-google-account-zone');
+      const gEmail = document.getElementById('settings-google-email');
+      if (gZone && gEmail) {
+        if (currentAuthUser) {
+          gEmail.textContent = currentAuthUser.email || 'Signed in with Google';
+          gZone.classList.remove('hidden');
+        } else {
+          gZone.classList.add('hidden');
+        }
+      }
       document.getElementById('profile-form-modal').classList.remove('hidden');
     }
 
@@ -12478,6 +12522,7 @@ service cloud.firestore {
     } catch (initErr) {
       console.warn('Firebase init fallback:', initErr);
       setCloudUiState('Local Cache', false);
+      if (typeof showAuthGateScreen === 'function') showAuthGateScreen(false);
     }
 
     async function toggleGoogleAuthSignIn() {
@@ -12854,8 +12899,25 @@ service cloud.firestore {
       return false;
     }
 
+    async function linkProfileOwnerInFirestore(profileId, uid, email) {
+      if (!profileId || !uid) return;
+      try {
+        await setDoc(doc(collection(db, 'users'), profileId), {
+          ownerUid: uid,
+          ownerEmail: email || '',
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Could not save profile link to Firestore:', err);
+        showToastNotification('Could not save account link to Firestore. Make sure your updated Firestore Rules are published.');
+      }
+    }
+
     window.CinePulseCloud = {
       toggleGoogleAuth: () => toggleGoogleAuthSignIn(),
+      pullAll: pullAllFromFirestore,
+      pushAll: pushAllToFirestore,
+      linkProfileOwner: linkProfileOwnerInFirestore,
       deleteProfileFromCloud: (profileId, catalogueIds, sharedLists, state) =>
         deleteProfileDocumentsFromFirestore(profileId, catalogueIds, sharedLists, state),
       pingHealth: async () => {
