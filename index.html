@@ -420,12 +420,12 @@
         </p>
       </div>
 
-      <div id="auth-gate-loading" class="py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
+      <div id="auth-gate-loading" class="hidden py-3 text-xs text-slate-400 flex items-center justify-center gap-2">
         <i class="fa-solid fa-spinner animate-spin text-cinema-accent"></i>
         <span>Checking your session...</span>
       </div>
 
-      <div id="auth-gate-actions" class="hidden space-y-3">
+      <div id="auth-gate-actions" class="space-y-3">
         <button type="button" onclick="handleGoogleAuthButtonClick()" class="w-full py-3.5 px-5 rounded-xl bg-cinema-accent hover:bg-cinema-accentHover text-white font-extrabold text-sm shadow-lg shadow-red-600/25 flex items-center justify-center gap-2.5 transition">
           <i class="fa-brands fa-google text-base"></i>
           <span>Sign in with Google</span>
@@ -567,10 +567,6 @@
   </header>
 
   <!-- Fixed Top-Right Viewport Admin Button (Only visible when signed in with ADMIN_EMAIL) -->
-  <button type="button" onclick="handleAdminButtonClick()" id="header-admin-btn" style="position: fixed; top: 10px; right: 16px; z-index: 1000;" class="hidden px-3 py-1.5 rounded-xl bg-cinema-900/95 hover:bg-cinema-800 backdrop-blur-md border border-cinema-700 text-slate-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xl whitespace-nowrap" title="Admin Mode Controls &amp; All-Accounts Switcher">
-    <i class="fa-solid fa-user-shield text-cinema-gold"></i>
-    <span id="header-admin-btn-label">Admin</span>
-  </button>
 
   <!-- Fixed Bottom-Right Viewport Cloud Sync & API Health Checker -->
   <div id="fixed-bottom-right-controls" style="position: fixed; bottom: 16px; right: 16px; z-index: 1000;" class="hidden flex items-center gap-2 bg-cinema-950/90 backdrop-blur-md p-1.5 rounded-2xl border border-cinema-700 shadow-2xl">
@@ -1466,9 +1462,14 @@
             </div>
             <div id="settings-google-email" class="text-[11px] text-slate-400 truncate mt-0.5"></div>
           </div>
-          <button type="button" onclick="signOutFromAccountSettings()" class="px-3 py-1.5 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 hover:border-red-500 text-slate-200 hover:text-white text-[11px] font-bold transition flex-shrink-0 flex items-center gap-1.5">
-            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-          </button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button id="settings-admin-panel-btn" type="button" onclick="closeProfileFormModal(); openAdminPanelModal();" class="hidden px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/60 text-cinema-gold text-[11px] font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-halved"></i> Admin
+            </button>
+            <button type="button" onclick="signOutFromAccountSettings()" class="px-3 py-1.5 rounded-lg bg-cinema-800 hover:bg-red-600/80 border border-cinema-700 hover:border-red-500 text-slate-200 hover:text-white text-[11px] font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+            </button>
+          </div>
         </div>
 
         <!-- Safeguarded Library & List Deletion Zone (Moved from Main Views) -->
@@ -1922,7 +1923,7 @@ service cloud.firestore {
   <!-- ========================================================= -->
   <!-- MODAL: FIRST-TIME GOOGLE SIGN-IN PROFILE LINKING          -->
   <!-- ========================================================= -->
-  <div id="google-link-profile-modal" class="fixed inset-0 z-[68] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+  <div id="google-link-profile-modal" class="fixed inset-0 z-[85] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
     <div class="w-full max-w-md bg-cinema-900 border border-cinema-700 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 text-xs my-8">
       <div class="flex items-center justify-between border-b border-cinema-800 pb-3">
         <div class="flex items-center gap-2.5">
@@ -3634,21 +3635,8 @@ service cloud.firestore {
 
     function startAdminSessionTimer() {
       clearAdminSessionTimer();
-      adminSessionExpiresAt = Date.now() + ADMIN_SESSION_DURATION_MS;
-      adminAutoLogoutTimer = setTimeout(() => {
-        logoutAdminMode(true);
-      }, ADMIN_SESSION_DURATION_MS);
-      adminCountdownInterval = setInterval(() => {
-        if (!isAdminMode) {
-          clearAdminSessionTimer();
-          return;
-        }
-        if (Date.now() >= adminSessionExpiresAt) {
-          logoutAdminMode(true);
-        } else {
-          syncAdminUiButtons();
-        }
-      }, 1000);
+      adminSessionExpiresAt = null;
+      syncAdminUiButtons();
     }
 
     function clearAdminSessionTimer() {
@@ -3672,7 +3660,7 @@ service cloud.firestore {
       const actionIcon = document.getElementById('header-profile-action-icon');
       const headerProfBtn = document.getElementById('header-profile-btn');
       const countdown = formatAdminRemainingTime();
-      const canAccessAdmin = isCurrentUserAdminEmail();
+      const canAccessAdmin = isCurrentUserAdminEmail() && !!getActiveProfile();
 
       if (hBtn) {
         if (!canAccessAdmin) {
@@ -3888,6 +3876,7 @@ service cloud.firestore {
 
     function openGoogleLinkProfileModal(user) {
       const modal = document.getElementById('google-link-profile-modal');
+      if (typeof showAuthGateScreen === 'function') showAuthGateScreen(false);
       const emailSub = document.getElementById('google-link-email-sub');
       const listEl = document.getElementById('google-unlinked-profiles-list');
       const secEl = document.getElementById('google-unlinked-profiles-section');
@@ -3951,6 +3940,7 @@ service cloud.firestore {
       masterData.activeProfileId = prof.id;
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
+      syncAdminUiButtons();
       saveMasterDataToStorage();
       if (window.CinePulseCloud && typeof window.CinePulseCloud.linkProfileOwner === 'function') {
         await window.CinePulseCloud.linkProfileOwner(prof.id, currentAuthUser.uid, currentAuthUser.email || '');
@@ -3996,6 +3986,7 @@ service cloud.firestore {
       masterData.activeProfileId = newId;
       closeGoogleLinkProfileModal();
       unlockAppAfterSignIn();
+      syncAdminUiButtons();
       saveMasterDataToStorage();
       if (window.CinePulseCloud && typeof window.CinePulseCloud.pushAll === 'function') {
         window.CinePulseCloud.pushAll(masterData, true);
@@ -4486,6 +4477,8 @@ service cloud.firestore {
         if (currentAuthUser) {
           gEmail.textContent = currentAuthUser.email || 'Signed in with Google';
           gZone.classList.remove('hidden');
+          const adminSetBtn = document.getElementById('settings-admin-panel-btn');
+          if (adminSetBtn) adminSetBtn.classList.toggle('hidden', !isCurrentUserAdminEmail());
         } else {
           gZone.classList.add('hidden');
         }
